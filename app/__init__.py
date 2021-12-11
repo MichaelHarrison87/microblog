@@ -1,6 +1,7 @@
 import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
 import os
+from elasticsearch import Elasticsearch, RequestsHttpConnection
 from flask import Flask, request, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -72,6 +73,17 @@ def create_app(config_class=Config):
 
         app.logger.setLevel(logging.INFO)
         app.logger.info('Microblog startup')
+
+        if app.config['ELASTICSEARCH_URL']:
+            app.elasticsearch = Elasticsearch([app.config['ELASTICSEARCH_URL']],
+                                              port=9200,
+                                              connection_class=RequestsHttpConnection,
+                                              http_auth=(os.getenv('ELASTICSEARCH_USER'), os.getenv('ELASTICSEARCH_PW'))
+                                              )
+        else:
+            app.elasticsearch = None
+
+
 
     return app
 
